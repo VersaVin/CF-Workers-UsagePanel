@@ -41,8 +41,9 @@ export default {
                     });
                 }
 
-                if (区分大小写访问路径 === 'config.json') {
-                    // 返回配置文件
+                if (区分大小写访问路径 === 'admin/config.json') {
+                    const usage_config_json = await env.KV.get('usage_config.json', { type: 'json' }) || [];
+                    return new Response(JSON.stringify(usage_config_json, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=UTF-8' } });
                 }
 
                 return new Response('管理面板（开发中）', {
@@ -97,8 +98,16 @@ export default {
                         return new Response(JSON.stringify(errorResponse, null, 2), { status: 500, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
                     }
                 }
-            } else if (访问路径 === 'robots.txt') return new Response('User-agent: *\nDisallow: /', { status: 200, headers: { 'Content-Type': 'text/plain; charset=UTF-8' } });
-
+            } else if (访问路径 === 'robots.txt') {
+                return new Response('User-agent: *\nDisallow: /', { status: 200, headers: { 'Content-Type': 'text/plain; charset=UTF-8' } });
+            }
+            
+            /*
+            if (访问路径 === 'test') {
+                const usage = await 更新请求数(env);
+                return new Response(JSON.stringify(usage, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=UTF-8' } });
+            }
+            */
 
             return UsagePanel主页(临时TOKEN);
         } else {
@@ -113,8 +122,66 @@ const usage_json_default = {
     pages: 0, // cf的已使用的pages请求数
     workers: 0, // cf的已使用的workers请求数
     total: 0, // cf的已使用的总请求数
-    max: 100000, // cf的请求数上限
+    max: 0, // cf的请求数上限
     msg: '❌ 无效TOKEN' // 备注信息
+}
+
+async function 更新请求数(env) {
+    let usage_config_json = await env.KV.get('usage_config.json', { type: 'json' });
+    let usage_json = { ...usage_json_default };
+    
+    if (!usage_config_json) {
+        // 不存在则创建一个空的配置文件
+        usage_config_json = [];
+        await env.KV.put('usage_config.json', JSON.stringify(usage_config_json));
+        usage_json.success = true;
+        usage_json.msg = '⚠️ 尚未添加任何Cloudflare账号';
+        await env.KV.put('usage.json', JSON.stringify(usage_json));
+    } else if (Array.isArray(usage_config_json) && usage_config_json.length > 0) {
+        // 如果存在则遍历配置文件中的每个账号，获取使用情况
+        // 累加所有账号的使用数据
+        let total_pages = 0;
+        let total_workers = 0;
+        let total_max = 0;
+        
+        for (let i = 0; i < usage_config_json.length; i++) {
+            const account = usage_config_json[i];
+            const { Email, GlobalAPIKey, AccountID, APIToken } = account;
+            
+            // 获取该账号的使用情况
+            const usage = await getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken);
+            
+            // 更新到该账号的 Usage 中
+            usage_config_json[i].Usage = usage;
+            usage_config_json[i].最后更新时间 = Date.now();
+            
+            // 累加使用数据
+            if (usage.success) {
+                total_pages += usage.pages || 0;
+                total_workers += usage.workers || 0;
+                total_max += usage.max || 100000;
+            }
+        }
+        
+        // 遍历完成后保存 usage_config_json 回 KV
+        await env.KV.put('usage_config.json', JSON.stringify(usage_config_json));
+        
+        // 将所有账号的数据累加到 usage_json 中并保存回 KV
+        usage_json.success = true;
+        usage_json.pages = total_pages;
+        usage_json.workers = total_workers;
+        usage_json.total = total_pages + total_workers;
+        usage_json.max = total_max;
+        usage_json.msg = '✅ 成功更新请求数使用数据';
+        await env.KV.put('usage.json', JSON.stringify(usage_json));
+    } else {
+        // 配置文件存在但为空数组或无效格式
+        usage_json.success = true;
+        usage_json.msg = '⚠️ 尚未添加任何Cloudflare账号';
+        await env.KV.put('usage.json', JSON.stringify(usage_json));
+    }
+    
+    return usage_json;
 }
 
 async function MD5MD5(文本) {
