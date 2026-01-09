@@ -25,7 +25,12 @@ export default {
                 return new Response(JSON.stringify(usage_json, null, 2), { headers: { 'Content-Type': 'application/json;charset=UTF-8' } });
             } else if (访问路径 == 'admin' || 访问路径.startsWith('admin/')) {
                 // 管理面板
-            }
+            } else if (访问路径.startsWith('api/')) {
+                // API接口
+                if (访问路径 === 'api/login') {
+
+                }
+            } else if (访问路径 === 'robots.txt') return new Response('User-agent: *\nDisallow: /', { status: 200, headers: { 'Content-Type': 'text/plain; charset=UTF-8' } });
 
 
             return UsagePanel主页(临时TOKEN);
