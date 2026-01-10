@@ -269,18 +269,25 @@ async function 更新请求数(env) {
         let total_workers = 0;
         let total_max = 0;
 
-        for (let i = 0; i < usage_config_json.length; i++) {
-            const account = usage_config_json[i];
+        // 使用 Promise.all 并发获取所有账号的使用情况
+        const updatePromises = usage_config_json.map(async (account) => {
             const { Email, GlobalAPIKey, AccountID, APIToken } = account;
 
             // 获取该账号的使用情况
             const usage = await getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken);
 
             // 更新到该账号的 Usage 中
-            usage_config_json[i].Usage = usage;
-            usage_config_json[i].UpdateTime = Date.now();
+            account.Usage = usage;
+            account.UpdateTime = Date.now();
 
-            // 累加使用数据
+            return usage;
+        });
+
+        // 等待所有请求完成
+        const results = await Promise.all(updatePromises);
+
+        // 累加使用数据
+        for (const usage of results) {
             if (usage.success) {
                 total_pages += usage.pages || 0;
                 total_workers += usage.workers || 0;
@@ -960,7 +967,7 @@ async function UsagePanel管理面板(TOKEN) {
     <!-- 添加账号模态框 -->
     <div class="modal-overlay" id="addModal">
         <div class="modal" style="max-width: 440px;">
-            <h3>添加 Cloudflare 账号</h3>
+            <h3>⚙️ 添加 Cloudflare 账号</h3>
             <div class="input-group">
                 <label>账号备注</label>
                 <input type="text" id="newName" placeholder="我的账号">
@@ -1116,13 +1123,13 @@ async function UsagePanel管理面板(TOKEN) {
                                 <div>
                                     <div class="account-name">🔑 \${acc.Name}</div>
                                     <div class="account-id">\${acc.AccountID ? \`🔒 AccountID: \${acc.AccountID}\` : \`📧 Email: \${acc.Email}\`}</div>
-                                    <div class="account-id" style="margin-top: 4px; opacity: 0.8;">🕒 最后更新: \${updateTime}</div>
+                                    <div class="account-id" style="margin-top: 4px; opacity: 0.8;">🕒 更新时间: \${updateTime}</div>
                                 </div>
                                 <button class="delete-btn" onclick="deleteAccount(\${acc.ID})">删除账号</button>
                             </div>
                             <div class="usage-section" style="margin-bottom: 0">
                                 <div class="usage-header">
-                                    <span class="label">此账号用量: \${total.toLocaleString()} / \${max.toLocaleString()} <b style="color: var(--primary); margin-left: 4px;">\${percent}%</b></span>
+                                    <span class="label">请求使用情况: \${total.toLocaleString()} / \${max.toLocaleString()} <b style="color: var(--primary); margin-left: 4px;">\${percent}%</b></span>
                                     <span class="label" style="font-size: 0.8rem; font-variant-numeric: tabular-nums;">
                                         W: \${(usage.workers || 0).toLocaleString()} | P: \${(usage.pages || 0).toLocaleString()}
                                     </span>
