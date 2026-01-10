@@ -187,6 +187,14 @@ export default {
                         return new Response(JSON.stringify({ success: false, msg: '删除账号失败: ' + error.message }), { status: 500, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
                     }
 
+                } else if (区分大小写访问路径 === 'api/logout') {// 登出接口
+                    return new Response(JSON.stringify({ success: true, msg: '登出成功' }), {
+                        status: 200,
+                        headers: {
+                            'Content-Type': 'application/json;charset=UTF-8',
+                            'Set-Cookie': `admin_token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`
+                        }
+                    });
                 } else if (区分大小写访问路径 === 'api/check') {// 检查单个CF账号请求量接口
                     try {
                         const Usage_JSON = await getCloudflareUsage(url.searchParams.get('Email'), url.searchParams.get('GlobalAPIKey'), url.searchParams.get('AccountID'), url.searchParams.get('APIToken'));
@@ -995,9 +1003,14 @@ async function UsagePanel管理面板(TOKEN) {
             });
         }
 
-        function logout() {
-            document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = '/';
+        async function logout() {
+            try {
+                await fetch('./api/logout', { method: 'POST' });
+            } catch (err) {
+                console.error('登出请求失败:', err);
+            } finally {
+                window.location.href = '/';
+            }
         }
 
         async function fetchSummary() {
